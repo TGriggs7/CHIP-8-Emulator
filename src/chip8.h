@@ -26,10 +26,13 @@ public:
   uint8_t reg_sounds;
   uint8_t reg_delay;
 
+  uint64_t cycles;
+
   Chip8();
   bool load(const char* filename);
   void start();
   void run_cycle();
+  void print_window();
 };
 
 #endif // CHIP8_H

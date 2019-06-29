@@ -42,6 +42,8 @@ Chip8::Chip8() {
   };
 
   memcpy(memory, hex_digits, 80);
+
+  cycles = 0;
 }
 
 bool Chip8::load(const char* filename) {
@@ -69,54 +71,81 @@ bool Chip8::load(const char* filename) {
   return true;
 }
 
+void Chip8::print_window() {
+  for (int i = 0; i < WINDOW_Y_MAX * WINDOW_X_MAX; i++) {
+    if (window[i]) {
+      cout << "X";
+    } else {
+      cout << ".";
+    }
+
+    // cout << bool(window[i]);
+
+    if (i % WINDOW_X_MAX == 0 && i > 0) {
+      cout << "\n";
+    }
+  }
+  cout << "\n\n\n";
+}
+
 void Chip8::run_cycle() {
 
-  uint16_t opcode = (memory[pc] << 8) | memory[pc];
+  uint16_t opcode = (memory[pc] << 8) | memory[pc + 1];
   pc += 2;
 
   switch (opcode & 0xF000) {
-    case 0x0000:
-    case 0x1000:
-    case 0x2000:
-    case 0x3000:
-    case 0x4000:
-    case 0x5000:
-      break;
-
     // reg setter
     case 0x6000: {
-      uint8_t reg = (opcode & 0xF000) >> 16;
+      uint8_t reg = (opcode & 0x0F00) >> 8;
       regs[reg] = opcode & 0x00FF;
+
       break;
     }
-
-    case 0x7000:
-    case 0x8000:
-    case 0x9000:
-
+   
     // I setter
     case 0xA000: {
       reg_I = opcode & 0x0FFF;
       break;
     }
 
-
-    case 0xB000:
-    case 0xC000:
-
-    // Dxyn -> n byte sprite at address I to be drawn at (Vx, Vy), sprite ix XORed, set Vf if erases pixels, sprite wraps
+    // TODO: error check bounds
+    // TODO: bit-wise not logical 
     case 0xD000: {
-      
+      uint8_t x_start = regs[(opcode & 0x0F00) >> 8];
+      uint8_t y_start = regs[(opcode & 0x00F0) >> 4];
+      uint8_t num_bytes = opcode & 0x000F;
+
+      uint8_t x_coor;
+      uint8_t y_coor;
+      uint8_t mem_val;
+
+      for (int i = 0; i < num_bytes; i++) {
+        for (int j = 0; j < 8; j++) {
+          x_coor = (x_start + ((i * 8 + j) % 8)) % WINDOW_X_MAX;
+          y_coor = (y_start + ((i * 8 + j) / 8)) % WINDOW_Y_MAX;
+          mem_val = memory[reg_I + i] & (0b1 << (7 - j));
+
+          // set 0xF register if a pixel is being turned off
+          if (mem_val && window[y_coor * WINDOW_X_MAX + x_coor]) {
+            regs[0xF] = 1;
+          }
+
+          // set new pixel value
+          window[y_coor * WINDOW_X_MAX + x_coor] ^= mem_val;
+
+        }
+      }
+      break;
     }
 
-
-    case 0xE000:
-    case 0xF000:
     default:
       cout << "RUH ROH RAGGY! Unknown opcode: " << opcode << "\n";
       exit(0);
   }
 
+  cycles++;
+  cout << int(cycles) << " CYCLE DONE\n";
+  print_window();
 }
 
 
