@@ -29,6 +29,10 @@ int main(int argc, char** argv) {
 
     // sleep
 
+  while (1) {
+    chip8.run_cycle();
+  }
+
 
   cout << loaded << "\n";
 }
