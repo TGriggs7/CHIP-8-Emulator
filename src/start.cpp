@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
   // load the rom into memory
   bool loaded = chip8.load(argv[1]);
 
-
+  // TODO: track key presses
 
   // start cycles
 
