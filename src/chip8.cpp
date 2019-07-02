@@ -16,7 +16,7 @@ Chip8::Chip8() {
   reg_I = 0;
 
   memset(stack, 0, 16 * 2);
-  memset(key_down, 0, 16);
+  memset(key_down, 0, NUM_KEYS);
 
   reg_sound = 0;
   reg_delay = 0;
@@ -44,16 +44,18 @@ Chip8::Chip8() {
   memcpy(memory, hex_digits, 80);
 
   cycles = 0;
+
+  redraw = false;
 }
 
-bool Chip8::load(const char* filename) {
+void Chip8::load(const char* filename) {
   FILE* file;
 
   // open file
   file = fopen(filename, "r");
   if (!file) {
     cout << "RUH ROH RAGGY! Bad filename\n";
-    return false;
+    exit(2);
   }
 
   // check file size
@@ -62,13 +64,13 @@ bool Chip8::load(const char* filename) {
   rewind(file);
   if (sz > (MEMSIZE - RESERVED_ADDR)) {
     cout << "RUH ROH RAGGY! File too large\n";
-    return false;
+    exit(2);
   }
 
   // read rom into memory
   fread(&memory[RESERVED_ADDR], 1, sz, file);
 
-  return true;
+  fclose(file);
 }
 
 void Chip8::print_window() {
@@ -83,7 +85,6 @@ void Chip8::print_window() {
     cout << "\n";
   }
   cout << "\n\n\n";
-
 }
 
 void Chip8::run_cycle() {
@@ -91,20 +92,24 @@ void Chip8::run_cycle() {
   uint16_t opcode = (memory[pc] << 8) | memory[pc + 1];
   pc += 2;
 
-  cout << int(opcode);
-
   switch (opcode & 0xF000) {
     // TODO: error check stack pointer
     case 0x0000: {
       switch (opcode & 0x00FF) {
         case 0x00E0: {
           memset(window, 0, WINDOW_X_MAX * WINDOW_Y_MAX);
+          redraw = true;
+          break;
         }
         // return from subroutine
         case 0x00EE: {
           pc = stack[--sp];
           break;
         }
+
+        default:
+          cout << "RUH ROH RAGGY! Unknown opcode: " << int(opcode) << "\n";
+          exit(0);
       }
       break;
     }
@@ -171,6 +176,14 @@ void Chip8::run_cycle() {
 
     case 0x8000: {
       switch (opcode & 0x000F) {
+        // 8xy0 - Vx |= Vy
+        case 0x0000: {
+          uint8_t reg1 = (opcode & 0x0F00) >> 8;
+          uint8_t reg2 = (opcode & 0x00F0) >> 4;
+          regs[reg1] = regs[reg2];
+          break;
+        }
+
         // 8xy1 - Vx |= Vy
         case 0x0001: {
           uint8_t reg1 = (opcode & 0x0F00) >> 8;
@@ -199,8 +212,8 @@ void Chip8::run_cycle() {
         case 0x0004: {
           uint8_t reg1 = (opcode & 0x0F00) >> 8;
           uint8_t reg2 = (opcode & 0x00F0) >> 4;
-          regs[0xF] = regs[reg1] + regs[reg2] > 255;
-          regs[reg1] = (regs[reg1] + regs[reg2]) & 0xFF;
+          regs[0xF] = regs[reg2] > 0xFF - regs[reg1];
+          regs[reg1] += regs[reg2];
           break;
         }
 
@@ -208,7 +221,7 @@ void Chip8::run_cycle() {
         case 0x0005: {
           uint8_t reg1 = (opcode & 0x0F00) >> 8;
           uint8_t reg2 = (opcode & 0x00F0) >> 4;
-          regs[0xF] = regs[reg1] > regs[reg2];
+          regs[0xF] = regs[reg2] <= regs[reg1];
           regs[reg1] -= regs[reg2];
           break;
         }
@@ -217,7 +230,7 @@ void Chip8::run_cycle() {
         case 0x0006: {
           uint8_t reg = (opcode & 0x0F00) >> 8;
           regs[0xF] = regs[reg] & 1;
-          regs[reg] >>= 2;
+          regs[reg] >>= 1;
           break;
         }
 
@@ -225,7 +238,7 @@ void Chip8::run_cycle() {
         case 0x0007: {
           uint8_t reg1 = (opcode & 0x0F00) >> 8;
           uint8_t reg2 = (opcode & 0x00F0) >> 4;
-          regs[0xF] = regs[reg2] > regs[reg1];
+          regs[0xF] = regs[reg2] >= regs[reg1];
           regs[reg1] = regs[reg2] - regs[reg1];
           break;
         }
@@ -233,14 +246,14 @@ void Chip8::run_cycle() {
         // 8xyE - set VF if most sig was 1 and shift Vx left
         case 0x000E: {
           uint8_t reg = (opcode & 0x0F00) >> 8;
-          if (regs[reg] & (1 << 7)) {
-            regs[0xF] = regs[reg] & (1 << 7);
-          } else {
-            regs[0xF] = 0;
-          }
-          regs[reg] <<= 2;
+          regs[0xF] = regs[reg] >> 7;
+          regs[reg] <<= 1;
           break;
         }
+
+        default:
+          cout << "RUH ROH RAGGY! Unknown opcode: " << int(opcode) << "\n";
+          exit(0);
 
       } 
       break;
@@ -275,6 +288,7 @@ void Chip8::run_cycle() {
 
       // TODO: make randomness (oxymoron? :D)
       regs[reg] = 7 & (opcode & 0x00FF);
+      break;
     }
 
     // TODO: error check bounds
@@ -283,6 +297,7 @@ void Chip8::run_cycle() {
       uint8_t x_start = regs[(opcode & 0x0F00) >> 8];
       uint8_t y_start = regs[(opcode & 0x00F0) >> 4];
       uint8_t num_bytes = opcode & 0x000F;
+      regs[0xF] = 0;
 
       uint8_t x_coor;
       uint8_t y_coor;
@@ -293,16 +308,17 @@ void Chip8::run_cycle() {
           x_coor = (x_start + j) % WINDOW_X_MAX;
           y_coor = (y_start + i) % WINDOW_Y_MAX;
           mem_val = memory[reg_I + i] & (1 << (7 - j));
-
+          
           // set 0xF register if a pixel is being turned off
           if (mem_val && window[x_coor][y_coor]) {
             regs[0xF] = 1;
           }
 
           // set new pixel value
-          window[x_coor][y_coor] ^= mem_val;
+          window[x_coor][y_coor] ^= bool(mem_val);
         }
       }
+      redraw = true;
       break;
     }
 
@@ -323,6 +339,10 @@ void Chip8::run_cycle() {
           }
           break;
         }
+
+        default:
+          cout << "RUH ROH RAGGY! Unknown opcode: " << int(opcode) << "\n";
+          exit(0);
       }
       break;
     }
@@ -337,13 +357,18 @@ void Chip8::run_cycle() {
 
         // Fx0A - set Vx = first key press
         case 0x000A: {
-          while (1) {
-            for (int i = 0; i < NUM_KEYS; i++) {
-              if (key_down[i]) {
-                regs[(opcode & 0x0F00) >> 8] = i;
-                break;
-              }
+          bool found_key = false;
+          for (int i = 0; i < NUM_KEYS; i++) {
+            if (key_down[i]) {
+              regs[(opcode & 0x0F00) >> 8] = i;
+              found_key = true;
+              break;
             }
+          }
+
+          if (!found_key) {
+            pc -= 2;
+            return;
           }
           break;
         }
@@ -362,11 +387,12 @@ void Chip8::run_cycle() {
 
         // Fx1E - reg_I += Vx
         case 0x001E: {
+          regs[0xF] = reg_I + regs[(opcode & 0x0F00) >> 8] > 0xFFF;
           reg_I += regs[(opcode & 0x0F00) >> 8];
           break;
         }
 
-        // Fx29 - reg_I = Vx sprite location
+        // Fx29 - reg_I = Vx hex sprite location
         case 0x0029: {
           uint8_t val = regs[(opcode & 0x0F00) >> 8];
           reg_I = val * HEX_SPRITE_SIZE;
@@ -396,6 +422,10 @@ void Chip8::run_cycle() {
           memcpy(regs, &memory[reg_I], num_regs);
           break;
         }
+
+        default:
+          cout << "RUH ROH RAGGY! Unknown opcode: " << int(opcode) << "\n";
+          exit(0);
       }
       break;
     }
@@ -405,8 +435,14 @@ void Chip8::run_cycle() {
       exit(0);
   }
 
+  if (reg_delay > 0) {
+    reg_delay--;
+  }
+  if (reg_sound > 0) {
+    reg_sound--;
+  }
   cycles++;
-  cout << int(cycles) << " CYCLE DONE\n";
+  // cout << int(cycles) << " CYCLE DONE\n";
   // print_window();
 }
 

@@ -30,11 +30,13 @@ public:
 
   uint64_t cycles;
 
+  bool redraw;
+
   Chip8();
-  bool load(const char* filename);
+  void load(const char* filename);
   void start();
   void run_cycle();
-  void print_window();
+  void print_window();  // for debugging
 };
 
 #endif // CHIP8_H
