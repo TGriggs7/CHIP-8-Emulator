@@ -13,7 +13,7 @@
 class Chip8 {
 
 public:
-  uint8_t memory[4096];
+  uint8_t memory[MEMSIZE];
   uint8_t regs[16];
 
   uint8_t window[WINDOW_X_MAX][WINDOW_Y_MAX];
@@ -21,22 +21,17 @@ public:
   uint16_t pc;  // program counter
   uint16_t sp;  // stack pointer
   uint16_t reg_I;
-
-  uint16_t stack[16];
-  bool key_down[16];
-
   uint8_t reg_sound;
   uint8_t reg_delay;
 
-  uint64_t cycles;
+  uint16_t stack[16];
+  bool key_down[NUM_KEYS];
 
   bool redraw;
 
   Chip8();
   void load(const char* filename);
-  void start();
   void run_cycle();
-  void print_window();  // for debugging
 };
 
 #endif // CHIP8_H

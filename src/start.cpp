@@ -5,8 +5,25 @@
 #include <SDL2/SDL.h>
 
 using namespace std;
-extern uint8_t* keypad;
 
+uint8_t keypad[16] = {
+    SDLK_b,
+    SDLK_4,
+    SDLK_5,
+    SDLK_6,
+    SDLK_r,
+    SDLK_t,
+    SDLK_y,
+    SDLK_f,
+    SDLK_g,
+    SDLK_h,
+    SDLK_v,
+    SDLK_n,
+    SDLK_7,
+    SDLK_u,
+    SDLK_j,
+    SDLK_m
+  };
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -23,7 +40,6 @@ int main(int argc, char** argv) {
   while (1) {
     chip8.run_cycle();
    
-
     while (SDL_PollEvent(&sdl.event)) {
       if (sdl.event.type == SDL_QUIT) {
         exit(0);
@@ -50,18 +66,10 @@ int main(int argc, char** argv) {
       }
     }
       
+
+     // TODO: write redraw funcs 
     if (chip8.redraw) {
-      for (int i = 0; i < WINDOW_Y_MAX; i++) {
-        for (int j = 0; j < WINDOW_X_MAX; j++) {
-          sdl.pixels[WINDOW_X_MAX * i + j] = (0x00FFFFFF * chip8.window[j][i]) | 0xFF000000;
-        }
-      }
-
-      SDL_UpdateTexture(sdl.sdlTexture, NULL, sdl.pixels, 256);
-      SDL_RenderClear(sdl.renderer);
-      SDL_RenderCopy(sdl.renderer, sdl.sdlTexture, NULL, NULL);
-      SDL_RenderPresent(sdl.renderer);
-
+      // sdl.redraw(&chip8.window);
       chip8.redraw = false;
     }
       

@@ -11,11 +11,12 @@ public:
 	uint32_t window_width;
 	uint32_t window_height;
 	SDL_Renderer* renderer;
-	SDL_Texture* sdlTexture;
+	SDL_Texture* texture;
 	SDL_Event event;
 
 	SDL_gfx();
 	void SDL_ERR(const char* err_msg);
+	// void redraw(const auto window);
 };
 
 #endif

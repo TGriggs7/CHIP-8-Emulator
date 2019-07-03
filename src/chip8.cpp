@@ -11,15 +11,16 @@ Chip8::Chip8() {
 
   memset(window, 0, WINDOW_X_MAX * WINDOW_Y_MAX);
 
-  pc = RESERVED_ADDR; // program starts at address 0x200
-  sp = 0; // set stack to top of memory
+  pc = RESERVED_ADDR; 
+  sp = 0;
   reg_I = 0;
+  reg_sound = 0;
+  reg_delay = 0;
 
   memset(stack, 0, 16 * 2);
   memset(key_down, 0, NUM_KEYS);
 
-  reg_sound = 0;
-  reg_delay = 0;
+  
 
   // sprite data of each digit 0-F is stored in reserved memory 0x000-0x1FF
   uint8_t hex_digits[80] = {
@@ -42,8 +43,6 @@ Chip8::Chip8() {
   };
 
   memcpy(memory, hex_digits, 80);
-
-  cycles = 0;
 
   redraw = false;
 }
@@ -71,20 +70,6 @@ void Chip8::load(const char* filename) {
   fread(&memory[RESERVED_ADDR], 1, sz, file);
 
   fclose(file);
-}
-
-void Chip8::print_window() {
-  for (int i = 0; i < WINDOW_Y_MAX; i++) {
-    for (int j = 0; j < WINDOW_X_MAX; j++) {
-      if (window[j][i]) {
-        cout << "X";
-      } else {
-        cout << ".";
-      }
-    } 
-    cout << "\n";
-  }
-  cout << "\n\n\n";
 }
 
 void Chip8::run_cycle() {
@@ -441,8 +426,5 @@ void Chip8::run_cycle() {
   if (reg_sound > 0) {
     reg_sound--;
   }
-  cycles++;
-  // cout << int(cycles) << " CYCLE DONE\n";
-  // print_window();
 }
 

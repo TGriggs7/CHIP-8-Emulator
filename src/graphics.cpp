@@ -1,24 +1,5 @@
 #include "graphics.h"
 
-uint8_t keypad[16] = {
-		SDLK_b,
-		SDLK_4,
-		SDLK_5,
-		SDLK_6,
-		SDLK_r,
-		SDLK_t,
-		SDLK_y,
-		SDLK_f,
-		SDLK_g,
-		SDLK_h,
-		SDLK_v,
-		SDLK_n,
-		SDLK_7,
-		SDLK_u,
-		SDLK_j,
-		SDLK_m
-	};
-
 void SDL_gfx::SDL_ERR(const char* err_msg) {
 	printf("SDL Error: %s\n", err_msg);
 	exit(1);
@@ -42,8 +23,23 @@ SDL_gfx::SDL_gfx() {
 	renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_RenderSetLogicalSize(renderer, window_width, window_height);
 
-	sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, 
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, 
           SDL_TEXTUREACCESS_STREAMING, WINDOW_X_MAX, WINDOW_Y_MAX);
 
 }
 
+// void SDL_gfx::redraw(const auto window) {
+// 	for (int i = 0; i < WINDOW_Y_MAX; i++) {
+//         for (int j = 0; j < WINDOW_X_MAX; j++) {
+//           pixels[WINDOW_X_MAX * i + j] = 0xFF000000;
+//           if (window[j][i]) {
+//             pixels[WINDOW_X_MAX * i + j] |= 0x00FFFFFF;
+//           }
+//         }
+//       }
+
+//       SDL_UpdateTexture(texture, NULL, pixels, 256);
+//       SDL_RenderClear(renderer);
+//       SDL_RenderCopy(renderer, texture, NULL, NULL);
+//       SDL_RenderPresent(renderer);
+// }
