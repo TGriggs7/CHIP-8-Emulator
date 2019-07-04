@@ -19,4 +19,5 @@ make chip8
 
 ## References
 I found http://devernay.free.fr/hacks/chip8/C8TECH10.HTM super helpful!
+
 I also largely leveraged https://stackoverflow.com/a/45002609 for the audio.
