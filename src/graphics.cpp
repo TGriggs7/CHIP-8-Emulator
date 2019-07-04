@@ -1,5 +1,6 @@
 #include "graphics.h"
 
+
 void SDL_gfx::SDL_ERR(const char* err_msg) {
 	printf("SDL Error: %s\n", err_msg);
 	exit(1);
