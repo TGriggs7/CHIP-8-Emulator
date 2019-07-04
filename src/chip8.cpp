@@ -20,8 +20,6 @@ Chip8::Chip8() {
   memset(stack, 0, 16 * 2);
   memset(key_down, 0, NUM_KEYS);
 
-  
-
   // sprite data of each digit 0-F is stored in reserved memory 0x000-0x1FF
   uint8_t hex_digits[80] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0,

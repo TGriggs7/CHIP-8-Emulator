@@ -29,18 +29,18 @@ SDL_gfx::SDL_gfx() {
 
 }
 
-// void SDL_gfx::redraw(const auto window) {
-// 	for (int i = 0; i < WINDOW_Y_MAX; i++) {
-//         for (int j = 0; j < WINDOW_X_MAX; j++) {
-//           pixels[WINDOW_X_MAX * i + j] = 0xFF000000;
-//           if (window[j][i]) {
-//             pixels[WINDOW_X_MAX * i + j] |= 0x00FFFFFF;
-//           }
-//         }
-//       }
+void SDL_gfx::redraw(Chip8* chip8) {
+	for (int i = 0; i < WINDOW_Y_MAX; i++) {
+        for (int j = 0; j < WINDOW_X_MAX; j++) {
+          pixels[WINDOW_X_MAX * i + j] = 0xFF000000;
+          if (chip8->window[j][i]) {
+            pixels[WINDOW_X_MAX * i + j] |= 0x00FFFFFF;
+          }
+        }
+      }
 
-//       SDL_UpdateTexture(texture, NULL, pixels, 256);
-//       SDL_RenderClear(renderer);
-//       SDL_RenderCopy(renderer, texture, NULL, NULL);
-//       SDL_RenderPresent(renderer);
-// }
+      SDL_UpdateTexture(texture, NULL, pixels, 256);
+      SDL_RenderClear(renderer);
+      SDL_RenderCopy(renderer, texture, NULL, NULL);
+      SDL_RenderPresent(renderer);
+}

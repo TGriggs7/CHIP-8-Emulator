@@ -16,7 +16,7 @@ public:
 
 	SDL_gfx();
 	void SDL_ERR(const char* err_msg);
-	// void redraw(const auto window);
+	void redraw(Chip8* chip8);
 };
 
 #endif

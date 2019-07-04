@@ -1,9 +1,17 @@
 #include "audio.h"
-const int AMPLITUDE = 32768;
+#include <stdio.h>
+#include <iostream>
+
+using namespace std;
+
+/*
+ * NOTE: This simple SDL audio setup is largely from https://stackoverflow.com/a/45002609
+ */
+
+const int AMPLITUDE = 32768;  // seemed to give the best buzzing sound
 const int SAMPLE_RATE = 44100;
 
-void audio_callback(void *user_data, Uint8 *raw_buffer, int bytes)
-{
+void audio_callback(void *user_data, Uint8 *raw_buffer, int bytes) {
     Sint16 *buffer = (Sint16*)raw_buffer;
     int length = bytes / 2; // 2 bytes per sample for AUDIO_S16SYS
     int &sample_nr(*(int*)user_data);
@@ -16,7 +24,11 @@ void audio_callback(void *user_data, Uint8 *raw_buffer, int bytes)
 }
 
 SDL_audio::SDL_audio() {
-  if(SDL_Init(SDL_INIT_AUDIO) != 0) SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
+  int result = SDL_Init(SDL_INIT_AUDIO);
+  if (result != 0) {
+    cout << "Audio couldn't be initialized\n";
+    exit(0);
+  }
 
   int sample_nr = 0;
 
@@ -29,8 +41,15 @@ SDL_audio::SDL_audio() {
   want.userdata = &sample_nr; // counter, keeping track of current sample number
 
   SDL_AudioSpec have;
-  if(SDL_OpenAudio(&want, &have) != 0) SDL_LogError(SDL_LOG_CATEGORY_AUDIO, "Failed to open audio: %s", SDL_GetError());
-  if(want.format != have.format) SDL_LogError(SDL_LOG_CATEGORY_AUDIO, "Failed to get the desired AudioSpec");
+  result = SDL_OpenAudio(&want, &have);
+  if (result != 0) {
+    cout << "Couldn't open audio\n";
+    exit(0);
+  }
+  if (want.format != have.format) {
+    cout << "Failed to get audio spec\n";
+    exit(0);
+  }
 
   is_paused = true;
 }
@@ -44,3 +63,4 @@ void SDL_audio::pause() {
   SDL_PauseAudio(1);
   is_paused = true;
 }
+

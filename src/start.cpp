@@ -3,13 +3,11 @@
 #include "chip8.h"
 #include "graphics.h"
 #include "audio.h"
-#include <SDL2/SDL.h>
-
-using namespace std;
-
 #include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
+
+using namespace std;
 
 uint8_t keypad[16] = {
     SDLK_b,
@@ -40,7 +38,6 @@ int main(int argc, char** argv) {
   SDL_gfx gfx = SDL_gfx();
   SDL_audio audio = SDL_audio();
 
-  // load the rom into memory
   chip8.load(argv[1]);
   
   while (1) {
@@ -80,23 +77,10 @@ int main(int argc, char** argv) {
     }
       
     if (chip8.redraw) {
-      for (int i = 0; i < WINDOW_Y_MAX; i++) {
-        for (int j = 0; j < WINDOW_X_MAX; j++) {
-          gfx.pixels[WINDOW_X_MAX * i + j] = 0xFF000000;
-          if (chip8.window[j][i]) {
-            gfx.pixels[WINDOW_X_MAX * i + j] |= 0x00FFFFFF;
-          }
-        }
-      }
-
-      SDL_UpdateTexture(gfx.texture, NULL, gfx.pixels, 256);
-      SDL_RenderClear(gfx.renderer);
-      SDL_RenderCopy(gfx.renderer, gfx.texture, NULL, NULL);
-      SDL_RenderPresent(gfx.renderer);
-
+      gfx.redraw(&chip8);
       chip8.redraw = false;
     }
-      
+
     usleep(2400);
   }
 }
