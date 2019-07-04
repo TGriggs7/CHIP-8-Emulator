@@ -366,8 +366,7 @@ void Chip8::run_cycle() {
 
         // Fx18 - set reg_sound = Vx
         case 0x0018: {
-          reg_sound = regs[(opcode & 0x0F00) >> 8]; 
-          cout << "SOUND TURNED ON\n";
+          reg_sound = 15 * regs[(opcode & 0x0F00) >> 8]; 
           break;
         }
 

@@ -6,9 +6,10 @@
 
 class SDL_audio {
 public:
-
+	SDL_audio();
+	bool is_paused;
+	void play();
+	void pause();
 };
-
-
 
 #endif
